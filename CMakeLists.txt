@@ -30,6 +30,9 @@ SET(SOURCES HOGPyramid.cpp JPEGImage.cpp LBFGS.cpp Mixture.cpp Model.cpp Object.
 ADD_EXECUTABLE(train ${HEADERS} ${SOURCES} train.cpp)
 ADD_EXECUTABLE(test ${HEADERS} ${SOURCES} test.cpp)
 
+# Add a library version of the software that we can link against
+ADD_LIBRARY(ffld2 ${HEADERS} lib/ffld2.h ${SOURCES} lib/ffld2.cpp)
+
 # Define the options
 IF(FFLD_HOGPYRAMID_DOUBLE)
   MESSAGE("Use doubles instead of floats.")

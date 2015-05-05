@@ -57,7 +57,7 @@ JPEGImage::JPEGImage(const string & filename) : width_(0), height_(0), depth_(0)
 {
 	// Load the image
 	FILE * file = fopen(filename.c_str(), "rb");
-	
+
 	if (!file) {
 		cerr << "Could not open " << filename << endl;
 		return;
@@ -65,20 +65,18 @@ JPEGImage::JPEGImage(const string & filename) : width_(0), height_(0), depth_(0)
 	
 	jpeg_decompress_struct cinfo;
 	jpeg_error_mgr jerr;
-	
 	cinfo.err = jpeg_std_error(&jerr);
 	jpeg_create_decompress(&cinfo);
 	jpeg_stdio_src(&cinfo, file);
-	
+
 	if ((jpeg_read_header(&cinfo, TRUE) != JPEG_HEADER_OK) || (cinfo.data_precision != 8) ||
 		!jpeg_start_decompress(&cinfo)) {
 		fclose(file);
 		cerr << filename << " is not an 8-bit jpeg image" << endl;
 		return;
 	}
-	
+
 	vector<uint8_t> bits(cinfo.image_width * cinfo.image_height * cinfo.num_components);
-	
 	for (int y = 0; y < cinfo.image_height; ++y) {
 		JSAMPLE * row = static_cast<JSAMPLE *>(&bits[y * cinfo.image_width * cinfo.num_components]);
 		
@@ -88,7 +86,6 @@ JPEGImage::JPEGImage(const string & filename) : width_(0), height_(0), depth_(0)
 			return;
 		}
 	}
-	
 	jpeg_finish_decompress(&cinfo);
 	
 	fclose(file);

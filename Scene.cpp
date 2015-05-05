@@ -60,11 +60,12 @@ static inline Result content(const xmlNodePtr cur)
 
 Scene::Scene(const string & filename)
 {
-	const string Names[20] =
+	bool pascal_pos = true; // by default, using pascal positives
+	const string Names[22] =
 	{
 		"aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat", "chair", "cow",
 		"diningtable", "dog", "horse", "motorbike", "person", "pottedplant", "sheep", "sofa",
-		"train", "tvmonitor"
+		"train", "tvmonitor", "face", "my_class" 									// the last 2 cases for non-pascal positives
 	};
 	
 	const string Poses[4] =
@@ -96,10 +97,13 @@ Scene::Scene(const string & filename)
 	cur = cur->xmlChildrenNode;
 	
 	while (cur != NULL) {
-		if (!xmlStrcmp(cur->name, reinterpret_cast<const xmlChar *>("filename"))) {
+		if ((!xmlStrcmp(cur->name, reinterpret_cast<const xmlChar *>("folder")))&&(content<string>(cur).compare("VOC2007")!=0)){
+			pascal_pos = false;
+			filename_ = content<string>(cur) + "/";			// when the positives are loaded from a non-pascal database, the folder should contain the whole path
+		}
+		if ((!xmlStrcmp(cur->name, reinterpret_cast<const xmlChar *>("filename")))&&(pascal_pos)) {
 			// Full path
 			size_t last = filename.rfind('/');
-			
 			if (last != string::npos) {
 				last = filename.rfind('/', last - 1);
 				
@@ -107,6 +111,11 @@ Scene::Scene(const string & filename)
 					filename_ = filename.substr(0, last) + "/JPEGImages/" +
 								content<string>(cur);
 			}
+		}
+		else if (!xmlStrcmp(cur->name, reinterpret_cast<const xmlChar *>("filename"))){  // in case of non-pascal positives. Assumes that the folder is read first
+			filename_ += content<string>(cur);
+			filename_.insert(filename_.rfind("frames/")+6,"_jpeg"); 						// grigoris, this and the following lines, just for internal use of png images
+			filename_.replace(filename_.find_last_of("."),filename_.find_last_of(".")+3, ".jpeg");
 		}
 		else if (!xmlStrcmp(cur->name, reinterpret_cast<const xmlChar *>("size"))) {
 			xmlNodePtr cur2 = cur->xmlChildrenNode;
@@ -130,9 +139,9 @@ Scene::Scene(const string & filename)
 			while (cur2 != NULL) {
 				if (!xmlStrcmp(cur2->name, reinterpret_cast<const xmlChar *>("name"))) {
 					const string * iter =
-						find(Names, Names + 20, content<string>(cur2));
+						find(Names, Names + 21, content<string>(cur2));
 					
-					if (iter != Names + 20)
+					if (iter != Names + 22)													// if non-pascal positives, then it falls in the 21st class
 						objects_.back().setName(static_cast<Object::Name>(iter - Names));
 				}
 				else if (!xmlStrcmp(cur2->name, reinterpret_cast<const xmlChar *>("pose"))) {

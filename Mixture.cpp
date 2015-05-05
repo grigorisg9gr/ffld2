@@ -130,17 +130,17 @@ double Mixture::train(const vector<Scene> & scenes, Object::Name name, int padx,
 		zero_ = false;
 	
 	double loss = numeric_limits<double>::infinity();
-	
+
 	for (int relabel = 0; relabel < nbRelabel; ++relabel) {
 		// Sample all the positives
 		vector<pair<Model, int> > positives;
 		
-		posLatentSearch(scenes, name, padx, pady, interval, overlap, positives);
+		posLatentSearch(scenes, name, padx, pady, interval, overlap, positives);  
 		
 		// Left-right clustering at the first iteration
 		if (zero_)
 			Cluster(static_cast<int>(models_.size()), positives);
-		
+
 		// Cache of hard negative samples of maximum size maxNegatives
 		vector<pair<Model, int> > negatives;
 		
@@ -155,7 +155,7 @@ double Mixture::train(const vector<Scene> & scenes, Object::Name name, int padx,
 				if ((negatives[i].first.parts()[0].deformation(3) =
 					 models_[negatives[i].second].dot(negatives[i].first)) > -1.01)
 					negatives[j++] = negatives[i];
-			
+
 			negatives.resize(j);
 			
 			// Sample new hard negatives
@@ -375,13 +375,13 @@ void Mixture::posLatentSearch(const vector<Scene> & scenes, Object::Name name, i
 		cerr << "Invalid training paramters" << endl;
 		return;
 	}
-	
+
 	positives.clear();
 	
 	for (int i = 0; i < scenes.size(); ++i) {
 		// Skip negative scenes
 		bool negative = true;
-		
+
 		for (int j = 0; j < scenes[i].objects().size(); ++j)
 			if ((scenes[i].objects()[j].name() == name) && !scenes[i].objects()[j].difficult())
 				negative = false;
@@ -509,6 +509,7 @@ void Mixture::posLatentSearch(const vector<Scene> & scenes, Object::Name name, i
 			}
 		}
 	}
+
 }
 
 static inline bool operator==(const Model & a, const Model & b)
